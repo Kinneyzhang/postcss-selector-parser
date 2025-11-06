@@ -251,9 +251,9 @@ CSS是输入字符串，START是单词的起始位置。
               (setq content (substring css start (+ next 2))
                     lines (split-string content "\n" t)
                     last (1- (length lines)))
-              (when (> last 0)
-                (setq next-line (+ line last)
-                      next-offset (- (+ next 1) (length (nth last lines))))
+              (if (> last 0)
+                  (setq next-line (+ line last)
+                        next-offset (- (+ next 1) (length (nth last lines))))
                 (setq next-line line
                       next-offset offset))
               (setq token-type (cdr (assq 'comment css-token-types))
