@@ -521,21 +521,39 @@ TYPE是节点类型，PROPS是属性列表。"
   "处理伪类/伪元素。"
   (let ((content (css-parser-content parser))
         (next (css-parser-next-token parser)))
-    ;; 检查是否为双冒号
-    (when (and next
-               (= (aref next 0) (cdr (assq 'colon css-token-types))))
-      (setq content (concat content (css-parser-content parser next)))
-      (cl-incf (css-parser-position parser))
-      (setq next (css-parser-next-token parser)))
     
-    ;; 消费伪类/伪元素名称（如果下一个是word token）
-    (when (and next
-               (= (aref next 0) (cdr (assq 'word css-token-types))))
-      (setq content (concat content (css-parser-content parser next)))
+    ;; 移动到冒号之后
+    (cl-incf (css-parser-position parser))
+    
+    ;; 检查是否为双冒号
+    (when (and (css-parser-curr-token parser)
+               (= (aref (css-parser-curr-token parser) 0) 
+                  (cdr (assq 'colon css-token-types))))
+      (setq content (concat content (css-parser-content parser)))
       (cl-incf (css-parser-position parser)))
     
-    (css-parser-new-node parser (css-make-pseudo content))
-    (cl-incf (css-parser-position parser))))
+    ;; 消费伪类/伪元素名称（如果当前是word token）
+    (when (and (css-parser-curr-token parser)
+               (= (aref (css-parser-curr-token parser) 0) 
+                  (cdr (assq 'word css-token-types))))
+      (setq content (concat content (css-parser-content parser)))
+      (cl-incf (css-parser-position parser)))
+    
+    ;; 处理带参数的伪类（如 :nth-child(2)）
+    (when (and (css-parser-curr-token parser)
+               (= (aref (css-parser-curr-token parser) 0) 
+                  (cdr (assq 'open-paren css-token-types))))
+      ;; 消费开括号和所有内容直到闭括号
+      (catch 'done
+        (while (< (css-parser-position parser)
+                  (length (css-parser-tokens parser)))
+          (let ((token (css-parser-curr-token parser)))
+            (setq content (concat content (css-parser-content parser)))
+            (cl-incf (css-parser-position parser))
+            (when (= (aref token 0) (cdr (assq 'close-paren css-token-types)))
+              (throw 'done nil))))))
+    
+    (css-parser-new-node parser (css-make-pseudo content))))
 
 (defun css-parser-combinator (parser)
   "处理组合器。"
