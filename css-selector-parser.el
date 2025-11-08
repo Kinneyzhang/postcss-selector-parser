@@ -129,18 +129,19 @@ CSS是输入字符串，START是反斜杠的位置。
   "从CSS字符串中消费一个单词。
 CSS是输入字符串，START是单词的起始位置。
 返回单词的结束位置。"
-  (let ((next start)
-        (code nil))
-    (while (< next (length css))
-      (setq code (aref css next))
-      (cond
-       ((gethash code css-word-delimiters)
-        (cl-return (1- next)))
-       ((= code (cdr (assq 'backslash css-token-types)))
-        (setq next (1+ (css-consume-escape css next))))
-       (t
-        (cl-incf next))))
-    (1- next)))
+  (cl-block nil
+    (let ((next start)
+          (code nil))
+      (while (< next (length css))
+        (setq code (aref css next))
+        (cond
+         ((gethash code css-word-delimiters)
+          (cl-return (1- next)))
+         ((= code (cdr (assq 'backslash css-token-types)))
+          (setq next (1+ (css-consume-escape css next))))
+         (t
+          (cl-incf next))))
+      (1- next))))
 
 (defun css-tokenize (css-string)
   "对CSS选择器字符串进行词法分析。
@@ -508,6 +509,13 @@ TYPE是节点类型，PROPS是属性列表。"
     ;; 检查是否为双冒号
     (when (and next
                (= (aref next 0) (cdr (assq 'colon css-token-types))))
+      (setq content (concat content (css-parser-content parser next)))
+      (cl-incf (css-parser-position parser))
+      (setq next (css-parser-next-token parser)))
+    
+    ;; 消费伪类/伪元素名称（如果下一个是word token）
+    (when (and next
+               (= (aref next 0) (cdr (assq 'word css-token-types))))
       (setq content (concat content (css-parser-content parser next)))
       (cl-incf (css-parser-position parser)))
     
