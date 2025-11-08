@@ -48,6 +48,16 @@
 - ✅ **清晰的代码结构** - 易于理解和学习
 - ✅ **详细的注释** - 每个函数都有说明文档
 
+#### [css-dom-selector.el](./css-dom-selector.el) 🆕
+
+结合CSS选择器解析器和Emacs的dom.el库，实现DOM查询和样式应用功能：
+
+- ✅ **querySelector/querySelectorAll** - 类似浏览器的DOM查询API
+- ✅ **CSS样式应用** - 为匹配的节点设置CSS属性
+- ✅ **类操作** - 添加、删除、检查、切换CSS类
+- ✅ **完整的选择器支持** - 标签、类、ID、属性、组合器
+- ✅ **实用工具函数** - 样式读取、DOM遍历等
+
 **主要功能：**
 
 ```elisp
@@ -68,7 +78,7 @@
 
 #### [examples.el](./examples.el)
 
-15个实用示例，展示各种使用场景：
+15个CSS选择器解析示例，展示各种使用场景：
 
 1. 基本选择器解析
 2. 复杂选择器处理
@@ -86,11 +96,32 @@
 14. 列表表示转换
 15. 选择器相似度比较
 
+#### [css-dom-selector-examples.el](./css-dom-selector-examples.el) 🆕
+
+16个DOM选择器和样式应用示例：
+
+1. 基础查询操作
+2. 组合选择器
+3. 后代选择器
+4. 子选择器
+5. 属性选择器
+6. 应用CSS样式
+7. 样式操作
+8. 类操作
+9. 提取所有链接
+10. 查找激活菜单项
+11. 修改所有文章
+12. 高亮外部链接
+13. 统计元素
+14. 样式化导航
+15. 创建主题
+16. 综合应用
+
 ### 3. 使用指南
 
 #### [CSS解析器使用指南.md](./CSS解析器使用指南.md)
 
-完整的使用手册，包括：
+CSS选择器解析器完整的使用手册，包括：
 
 - 安装和配置说明
 - 详细的API文档
@@ -98,6 +129,20 @@
 - 最佳实践
 - 应用场景
 - 扩展建议
+
+#### [CSS-DOM-Selector使用指南.md](./CSS-DOM-Selector使用指南.md) 🆕
+
+DOM选择器和样式应用完整使用手册，包括：
+
+- 功能特性概述
+- 支持的选择器列表
+- 完整的API文档
+- DOM查询函数
+- 样式操作函数
+- 类操作函数
+- 实用示例代码
+- 与JavaScript DOM API对比
+- 实际应用场景
 
 #### [test-implementation.md](./test-implementation.md)
 
@@ -115,7 +160,7 @@
 
 直接阅读`CSS选择器解析器实现详解.md`了解实现原理。
 
-### 使用Emacs Lisp实现
+### 使用CSS选择器解析器
 
 1. 在Emacs中加载库：
 
@@ -145,6 +190,48 @@
 (css-selector-parser-run-examples)
 ```
 
+### 使用DOM选择器和样式应用 🆕
+
+1. 加载库和依赖：
+
+```elisp
+(require 'dom)
+(load-file "path/to/css-selector-parser.el")
+(load-file "path/to/css-dom-selector.el")
+```
+
+2. 使用DOM查询和样式：
+
+```elisp
+;; 创建DOM
+(setq my-dom 
+  '(html nil
+    (body nil
+      (div ((id . "header") (class . "header"))
+        (h1 nil "My Site"))
+      (p ((class . "text")) "Hello World"))))
+
+;; 查询节点
+(css-dom-query-selector my-dom "#header")
+(css-dom-query-selector-all my-dom ".text")
+
+;; 应用样式
+(css-dom-apply-style my-dom ".text" 
+  '((color . "red") (font-size . "16px")))
+
+;; 类操作
+(let ((node (css-dom-query-selector my-dom "#header")))
+  (css-dom-add-class node "active")
+  (css-dom-has-class node "active"))  ;; => t
+```
+
+3. 运行DOM示例：
+
+```elisp
+(load-file "css-dom-selector-examples.el")
+(css-dom-selector-run-examples)
+```
+
 ## 📖 支持的CSS选择器
 
 | 类型 | 示例 | 支持 |
@@ -166,7 +253,9 @@
 
 ## 💡 实际应用示例
 
-### 示例1：提取所有类名
+### CSS选择器解析示例
+
+#### 示例1：提取所有类名
 
 ```elisp
 (defun extract-classes (selector)
@@ -182,7 +271,7 @@
 ;; => ("header" "fixed" "menu" "items")
 ```
 
-### 示例2：为类名添加前缀
+#### 示例2：为类名添加前缀
 
 ```elisp
 (defun add-prefix (selector prefix)
@@ -198,7 +287,7 @@
 ;; => ".my-button.my-large"
 ```
 
-### 示例3：计算选择器特异性
+#### 示例3：计算选择器特异性
 
 ```elisp
 (defun calculate-specificity (selector)
@@ -218,7 +307,67 @@
 ;; => (1 3 2)
 ```
 
+### DOM选择器和样式应用示例 🆕
+
+#### 示例4：DOM查询
+
+```elisp
+;; 创建DOM结构
+(setq my-dom
+  '(html nil
+    (body nil
+      (header ((id . "header"))
+        (nav ((class . "menu"))
+          (a ((href . "/home")) "Home")
+          (a ((href . "/about") (class . "active")) "About")))
+      (div ((class . "content"))
+        (p ((class . "text")) "Hello")
+        (p ((class . "text highlight")) "Important")))))
+
+;; 查询节点
+(css-dom-query-selector my-dom "#header")
+(css-dom-query-selector-all my-dom ".text")
+(css-dom-query-selector my-dom "nav a.active")
+```
+
+#### 示例5：应用样式
+
+```elisp
+;; 为所有段落设置样式
+(css-dom-apply-style my-dom "p"
+  '((color . "blue") (font-size . "14px")))
+
+;; 为高亮文本设置样式
+(css-dom-apply-style my-dom ".highlight"
+  '((background-color . "yellow") (font-weight . "bold")))
+
+;; 为链接设置样式
+(css-dom-apply-style my-dom "nav a"
+  '((text-decoration . "none") (color . "#333")))
+```
+
+#### 示例6：类操作
+
+```elisp
+;; 获取节点
+(setq header (css-dom-query-selector my-dom "#header"))
+
+;; 添加类
+(css-dom-add-class header "sticky")
+
+;; 检查类
+(css-dom-has-class header "sticky")  ;; => t
+
+;; 切换类
+(css-dom-toggle-class header "collapsed")
+
+;; 移除类
+(css-dom-remove-class header "sticky")
+```
+
 ## 🎯 学习路径
+
+### CSS选择器解析器
 
 1. **理解原理** - 阅读`CSS选择器解析器实现详解.md`
 2. **查看实现** - 研究`css-selector-parser.el`的源代码
@@ -226,25 +375,55 @@
 4. **动手实践** - 基于API编写自己的工具
 5. **扩展功能** - 添加新特性或优化性能
 
+### DOM选择器和样式应用 🆕
+
+1. **理解概念** - 阅读`CSS-DOM-Selector使用指南.md`
+2. **查看实现** - 研究`css-dom-selector.el`的源代码
+3. **运行示例** - 执行`css-dom-selector-examples.el`中的示例
+4. **实战应用** - 在实际项目中使用DOM查询和样式
+5. **进阶使用** - 结合其他Emacs工具创建复杂应用
+
 ## 🔧 技术亮点
 
-### 词法分析
+### CSS选择器解析器
+
+#### 词法分析
 
 - 基于状态机的token识别
 - 完整的转义序列支持
 - 精确的位置跟踪（行号、列号）
 
-### 语法分析
+#### 语法分析
 
 - 递归下降解析算法
 - 类型化的AST节点
 - 保留所有源码信息（包括空白字符）
 
-### API设计
+#### API设计
 
 - 函数式编程风格
 - 易于使用的遍历接口
 - 灵活的节点操作
+
+### DOM选择器和样式应用 🆕
+
+#### 选择器匹配
+
+- 完整的CSS选择器支持
+- 高效的节点匹配算法
+- 组合器链式匹配
+
+#### 样式操作
+
+- 批量样式应用
+- CSS属性解析和序列化
+- 保留原有样式
+
+#### 类管理
+
+- 空格分隔的类名处理
+- 原子化的类操作
+- 状态检查功能
 
 ## 📊 与原始实现对比
 
