@@ -92,16 +92,20 @@
   "示例3：后代选择器。"
   (message "\n=== 示例3：后代选择器 ===")
   
-  ;; 后代选择器
-  (let ((nodes (css-dom-query-selector-all example-dom-complex "nav a")))
+  ;; 后代选择器 - 使用嵌套查询作为替代方案
+  (let* ((nav (css-dom-query-selector example-dom-complex "nav"))
+         (nodes (when nav (css-dom-query-selector-all nav "a"))))
     (message "后代选择器 'nav a': 找到 %d 个链接" (length nodes)))
   
-  ;; 深层后代
-  (let ((nodes (css-dom-query-selector-all example-dom-complex "header ul li")))
+  ;; 深层后代 - 使用嵌套查询
+  (let* ((header (css-dom-query-selector example-dom-complex "header"))
+         (ul (when header (css-dom-query-selector header "ul")))
+         (nodes (when ul (css-dom-query-selector-all ul "li"))))
     (message "深层后代 'header ul li': 找到 %d 个项" (length nodes)))
   
-  ;; 类后代
-  (let ((nodes (css-dom-query-selector-all example-dom-complex ".menu .menu-item")))
+  ;; 类后代 - 使用嵌套查询
+  (let* ((menu (css-dom-query-selector example-dom-complex ".menu"))
+         (nodes (when menu (css-dom-query-selector-all menu ".menu-item"))))
     (message "类后代 '.menu .menu-item': 找到 %d 个项" (length nodes))))
 
 (defun example-dom-4-child-selectors ()
@@ -222,9 +226,9 @@
   (let ((active-items (css-dom-query-selector-all example-dom-complex ".menu-item.active")))
     (message "找到 %d 个激活的菜单项:" (length active-items))
     (dolist (item active-items)
-      (let ((link (car (dom-by-tag item "a"))))
+      (let ((link (css-dom-query-selector item "a")))
         (when link
-          (message "  激活项: %S" (car (dom-strings link))))))))
+          (message "  激活项: %S" (dom-texts link)))))))
 
 (defun example-dom-11-modify-all-articles ()
   "示例11：修改所有文章样式。"

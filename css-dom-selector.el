@@ -364,7 +364,11 @@ NODE是DOM节点，STYLES是样式列表 ((property . value) ...)。"
       ;; 更新style属性
       (let ((new-style-string (css-dom-style-map-to-string style-map)))
         (if attrs
-            (setcdr (assq 'style attrs) new-style-string)
+            (let ((style-assoc (assq 'style attrs)))
+              (if style-assoc
+                  (setcdr style-assoc new-style-string)
+                ;; 如果有属性列表但没有style属性，添加到属性列表
+                (setcdr attrs (cons (cons 'style new-style-string) (cdr attrs)))))
           ;; 如果没有属性，创建属性列表
           (setcar (cdr node) (list (cons 'style new-style-string))))))))
 
