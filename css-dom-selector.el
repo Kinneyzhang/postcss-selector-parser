@@ -167,7 +167,8 @@
 返回一个列表，每个元素是 (selector-nodes . combinator)。"
   (let ((parts '())
         (current-nodes '())
-        (current-combinator nil))
+        (current-combinator nil)
+        (last-was-combinator nil))
     (dolist (node (plist-get selector-ast :nodes))
       (if (eq (plist-get node :type) 'combinator)
           (progn
@@ -176,9 +177,23 @@
               (push (cons (nreverse current-nodes) current-combinator) parts))
             ;; 设置新的组合器
             (setq current-combinator (plist-get node :value))
-            (setq current-nodes '()))
+            (setq current-nodes '())
+            (setq last-was-combinator t))
+        ;; 检查是否有隐式的后代组合器（空格）
+        ;; 只在上一个节点不是组合器时检查
+        (unless last-was-combinator
+          (let* ((spaces (plist-get node :spaces))
+                 (before-space (and spaces (plist-get spaces :before))))
+            (when (and before-space (not (string-empty-p before-space)))
+              ;; 有前导空格，表示这是一个新的选择器部分
+              (when current-nodes
+                (push (cons (nreverse current-nodes) current-combinator) parts))
+              ;; 设置后代组合器
+              (setq current-combinator " ")
+              (setq current-nodes '()))))
         ;; 累积非组合器节点
-        (push node current-nodes)))
+        (push node current-nodes)
+        (setq last-was-combinator nil)))
     ;; 添加最后一组节点
     (when current-nodes
       (push (cons (nreverse current-nodes) current-combinator) parts))
