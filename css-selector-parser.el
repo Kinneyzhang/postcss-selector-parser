@@ -643,6 +643,18 @@ TYPE是节点类型，PROPS是属性列表。"
   (while (< (css-parser-position parser)
             (length (css-parser-tokens parser)))
     (css-parser-parse parser))
+  
+  ;; 处理剩余的尾随空白 - 附加到最后一个节点的 :after
+  (when (and (css-parser-spaces-before parser)
+             (not (string= (css-parser-spaces-before parser) "")))
+    (let* ((current-selector (css-parser-current parser))
+           (nodes (plist-get current-selector :nodes)))
+      (when nodes
+        (let* ((last-node (car (last nodes)))
+               (spaces (plist-get last-node :spaces)))
+          (when spaces
+            (plist-put spaces :after (css-parser-spaces-before parser)))))))
+  
   (css-parser-root parser))
 
 ;;; 公共API
