@@ -307,7 +307,7 @@ TYPE是节点类型，PROPS是属性列表。"
       (setq node (plist-put node (car props) (cadr props))
             props (cddr props)))
     (unless (plist-get node :spaces)
-      (setq node (plist-put node :spaces '(:before "" :after ""))))
+      (setq node (plist-put node :spaces (list :before "" :after ""))))
     node))
 
 (defun css-make-root (&rest props)
@@ -406,7 +406,8 @@ TYPE是节点类型，PROPS是属性列表。"
   tokens          ; token数组
   position        ; 当前位置
   root            ; 根节点
-  current)        ; 当前选择器节点
+  current         ; 当前选择器节点
+  spaces-before)  ; 累积的前置空白
 
 (defun css-parser-curr-token (parser)
   "获取解析器的当前token。"
@@ -430,12 +431,20 @@ TYPE是节点类型，PROPS是属性列表。"
 
 (defun css-parser-new-node (parser node)
   "添加新节点到当前选择器。"
+  ;; 将累积的空白附加到节点的 :before
+  (when (css-parser-spaces-before parser)
+    (let ((spaces (plist-get node :spaces)))
+      (plist-put spaces :before (css-parser-spaces-before parser)))
+    (setf (css-parser-spaces-before parser) ""))
   (css-node-append (css-parser-current parser) node)
   node)
 
 (defun css-parser-space (parser)
   "处理空白字符。"
-  ;; 简化实现：直接跳过空白
+  ;; 累积空白字符，稍后附加到下一个节点
+  (let ((space-content (css-parser-content parser)))
+    (setf (css-parser-spaces-before parser)
+          (concat (or (css-parser-spaces-before parser) "") space-content)))
   (cl-incf (css-parser-position parser)))
 
 (defun css-parser-comment (parser)
@@ -459,7 +468,8 @@ TYPE是节点类型，PROPS是属性列表。"
   (let* ((content (css-parser-content parser))
          (i 0)
          (len (length content))
-         nodes)
+         nodes
+         (first-node t))
     ;; 分割单词为多个节点
     (while (< i len)
       (let ((ch (aref content i)))
@@ -492,9 +502,14 @@ TYPE是节点类型，PROPS是属性列表。"
               (push (css-make-tag (substring content start end)) nodes))
             (setq i end))))))
     
-    ;; 添加节点
+    ;; 添加节点 - 只有第一个节点获得累积的空白
     (dolist (node (nreverse nodes))
-      (css-parser-new-node parser node))
+      (if first-node
+          (progn
+            (css-parser-new-node parser node)
+            (setq first-node nil))
+        ;; 后续节点直接添加，不获得累积的空白
+        (css-node-append (css-parser-current parser) node)))
     (cl-incf (css-parser-position parser))))
 
 (defun css-parser-universal (parser)
@@ -649,7 +664,8 @@ SELECTOR-STRING是要解析的CSS选择器字符串。
                   :tokens (vconcat tokens)
                   :position 0
                   :root root
-                  :current selector))
+                  :current selector
+                  :spaces-before ""))
     (css-parser-loop parser)))
 
 (defun css-selector-walk (ast func)
