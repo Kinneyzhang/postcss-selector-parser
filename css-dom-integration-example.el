@@ -6,73 +6,78 @@
 
 ;;; 场景1：网页抓取和信息提取
 
+(setq-local lisp-indent-offset 2)
 (defvar example-blog-html
   '(html nil
-    (head nil
-      (title nil "技术博客 - 最新文章"))
-    (body nil
-      (div ((id . "header") (class . "site-header"))
-        (h1 ((class . "site-title")) "技术博客")
-        (nav ((class . "main-nav"))
-          (ul nil
-            (li nil (a ((href . "/")) "首页"))
-            (li nil (a ((href . "/archive")) "归档"))
-            (li nil (a ((href . "/about")) "关于")))))
-      (main ((id . "content"))
-        (article ((class . "post") (data-id . "1"))
-          (h2 ((class . "post-title")) (a ((href . "/posts/1")) "深入理解CSS选择器"))
-          (div ((class . "post-meta"))
-            (span ((class . "author")) "作者：张三")
-            (span ((class . "date")) "2024-01-15"))
-          (div ((class . "post-excerpt"))
-            "CSS选择器是前端开发的基础...")
-          (div ((class . "post-tags"))
-            (a ((href . "/tags/css") (class . "tag")) "CSS")
-            (a ((href . "/tags/frontend") (class . "tag")) "前端")))
-        (article ((class . "post") (data-id . "2"))
-          (h2 ((class . "post-title")) (a ((href . "/posts/2")) "Emacs Lisp编程指南"))
-          (div ((class . "post-meta"))
-            (span ((class . "author")) "作者：李四")
-            (span ((class . "date")) "2024-01-14"))
-          (div ((class . "post-excerpt"))
-            "Emacs Lisp是一门强大的脚本语言...")
-          (div ((class . "post-tags"))
-            (a ((href . "/tags/emacs") (class . "tag")) "Emacs")
-            (a ((href . "/tags/lisp") (class . "tag")) "Lisp"))))
-      (aside ((id . "sidebar"))
-        (div ((class . "widget"))
-          (h3 nil "热门标签")
-          (div ((class . "tag-cloud"))
-            (a ((href . "/tags/css")) "CSS")
-            (a ((href . "/tags/javascript")) "JavaScript")
-            (a ((href . "/tags/emacs")) "Emacs"))))
-      (footer ((id . "footer") (class . "site-footer"))
-        (p nil "© 2024 技术博客. All rights reserved."))))
+     (head nil
+       (title nil "技术博客 - 最新文章"))
+     (body nil
+       (div ((id . "header") (class . "site-header"))
+         (h1 ((class . "site-title")) "技术博客")
+         (nav ((class . "main-nav"))
+           (ul nil
+             (li nil (a ((href . "/")) "首页"))
+             (li nil (a ((href . "/archive")) "归档"))
+             (li nil (a ((href . "/about")) "关于")))))
+       (main ((id . "content"))
+         (article ((class . "post") (data-id . "1"))
+           (h2 ((class . "post-title"))
+             (a ((href . "/posts/1")) "深入理解CSS选择器"))
+           (div ((class . "post-meta"))
+             (span ((class . "author")) "作者：张三")
+             (span ((class . "date")) "2024-01-15"))
+           (div ((class . "post-excerpt"))"CSS选择器是前端开发的基础...")
+           (div ((class . "post-tags"))
+             (a ((href . "/tags/css") (class . "tag")) "CSS")
+             (a ((href . "/tags/frontend") (class . "tag")) "前端")))
+         (article ((class . "post") (data-id . "2"))
+           (h2 ((class . "post-title"))
+             (a ((href . "/posts/2")) "Emacs Lisp编程指南"))
+           (div ((class . "post-meta"))
+             (span ((class . "author")) "作者：李四")
+             (span ((class . "date")) "2024-01-14"))
+           (div ((class . "post-excerpt"))
+             "Emacs Lisp是一门强大的脚本语言...")
+           (div ((class . "post-tags"))
+             (a ((href . "/tags/emacs") (class . "tag")) "Emacs")
+             (a ((href . "/tags/lisp") (class . "tag")) "Lisp"))))
+       (aside ((id . "sidebar"))
+         (div ((class . "widget"))
+           (h3 nil "热门标签")
+           (div ((class . "tag-cloud"))
+             (a ((href . "/tags/css")) "CSS")
+             (a ((href . "/tags/javascript")) "JavaScript")
+             (a ((href . "/tags/emacs")) "Emacs"))))
+       (footer ((id . "footer") (class . "site-footer"))
+         (p nil "© 2024 技术博客. All rights reserved."))))
   "示例博客HTML结构。")
 
 (defun extract-blog-posts (dom)
   "从博客DOM中提取所有文章信息。"
   (let ((articles (css-dom-query-selector-all dom "article.post"))
-        (posts '()))
+         (posts '()))
     (dolist (article articles)
       (let* ((title-link (css-dom-query-selector article ".post-title a"))
-             (title (car (dom-strings title-link)))
-             (url (cdr (assq 'href (dom-attributes title-link))))
-             (author-node (css-dom-query-selector article ".author"))
-             (author (car (dom-strings author-node)))
-             (date-node (css-dom-query-selector article ".date"))
-             (date (car (dom-strings date-node)))
-             (excerpt-node (css-dom-query-selector article ".post-excerpt"))
-             (excerpt (car (dom-strings excerpt-node)))
-             (tag-nodes (css-dom-query-selector-all article ".post-tags .tag"))
-             (tags (mapcar (lambda (tag) (car (dom-strings tag))) tag-nodes)))
+              (title (car (dom-strings title-link)))
+              (url (cdr (assq 'href (dom-attributes title-link))))
+              (author-node (css-dom-query-selector article ".author"))
+              (author (car (dom-strings author-node)))
+              (date-node (css-dom-query-selector article ".date"))
+              (date (car (dom-strings date-node)))
+              (excerpt-node (css-dom-query-selector article ".post-excerpt"))
+              (excerpt (car (dom-strings excerpt-node)))
+              (tag-nodes (css-dom-query-selector-all
+                           article ".post-tags .tag"))
+              (tags (mapcar (lambda (tag)
+                              (car (dom-strings tag)))
+                      tag-nodes)))
         (push (list :title title
-                    :url url
-                    :author author
-                    :date date
-                    :excerpt excerpt
-                    :tags tags)
-              posts)))
+                :url url
+                :author author
+                :date date
+                :excerpt excerpt
+                :tags tags)
+          posts)))
     (nreverse posts)))
 
 (defun demo-extract-posts ()
@@ -373,7 +378,7 @@
 ;;; 运行所有演示
 
 (defun run-all-integration-demos ()
-  "运行所有集成示例。"
+  "运行所有集成示例"。
   (interactive)
   (message "\n\n=====================================")
   (message "CSS DOM 集成示例演示")
